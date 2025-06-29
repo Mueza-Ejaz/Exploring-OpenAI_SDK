@@ -1,1 +1,1 @@
-# Learning-Artificial-Intelligence
+# Learning-OpenAI SDK
