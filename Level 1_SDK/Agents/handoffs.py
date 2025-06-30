@@ -13,19 +13,19 @@ from agents import (
 load_dotenv()
 set_tracing_disabled(True)
 
-# Get GEMINI API key (Note: Gemini not officially supported in OpenAI SDK)
+# Get GEMINI API key 
 gemini_api_key = os.getenv("GEMINI_API_KEY")
 if not gemini_api_key:
     raise ValueError("GEMINI_API_KEY not set in .env")
 
-# Set up the API client and model (pretending it's Gemini but using OpenAI interface)
+# Set up the API client and model 
 client = AsyncOpenAI(
     api_key=gemini_api_key,
     base_url="https://generativelanguage.googleapis.com/v1beta/openai/"
 )
 
 model = OpenAIChatCompletionsModel(
-    model="gemini-2.0-flash",  # Replace with valid model if needed
+    model="gemini-2.0-flash",  
     openai_client=client
 )
 
