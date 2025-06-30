@@ -43,7 +43,7 @@ refund_agent = Agent(
     model=model
 )
 
-# Main agent: Triage/Support Agent
+# Main agent: Triage/Support Agent = Decide karta hai k kis agent ko kaam dena hai
 triage_agent = Agent(
     name="Support Agent",
     instructions=(
