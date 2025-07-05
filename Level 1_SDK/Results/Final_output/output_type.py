@@ -37,14 +37,6 @@ config = RunConfig(
 )
 
 
-# Translator Agent (English ➜ Urdu)
-translator = Agent(
-    name="Translator",
-    instructions="Translate English text into Urdu.",
-    model=model
-)
-
-
 # Define structured output model
 class Intro(BaseModel):
     name: str
