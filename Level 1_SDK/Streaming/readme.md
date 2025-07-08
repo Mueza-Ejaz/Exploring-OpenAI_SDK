@@ -1,107 +1,84 @@
-#  Streaming in Agents SDK:
+#  Streaming in SDK:
 
-## Streaming Kya Hai?
+##  What is Streaming?
 
-###  Basic Idea:
-Aam tor par jab hum `Runner.run()` use karty hy, to agent ka **poora result ek hi baar me milta hai**.
+**Streaming** ka matlab hai:  
+> AI ka response aapko **real-time** mein part-by-part milta hai, instead of waiting for the full response at the end.
 
-Lekin agar hum `Runner.run_streamed()` use kary, to humhe **real-time updates** milti hain — jaise jaise agent sochta hai aur response likhta hai
-jaisy koi type kar raha hoo or hamey dikh raha hoo.
+##  Methods:
 
+### ✅ 1. `Runner.run_streamed()`
 
-###  Example:
-Socho hum AI agent se keh rahy hun:  
-**"HTML, CSS aur JavaScript par aik paragraph likho."**  
+- Is method se aap AI agent ko **streaming mode** mein run karte ho.  
+- Ye return karta hai: `RunResultStreaming` object.
 
-- `Runner.run()` me: Agent pura sochta hai aur akhir me poora jawab deta hai.
-- `Runner.run_streamed()` me: humhy har sentence **live dikhai deta hai**, jaise chat me typing dikh rahi ho.
-
-
-##  SDK Me Streaming Kaise Use Karte Hain?
-
-### 🔹 Step 1: Agent ko streaming mode me run karo
-
-```python
-result = await Runner.run_streamed(agent, input="Explain recursion")
-```
-
-➡️ Ye `RunResultStreaming` object return karega.
-
----
-
-### 🔹 Step 2: Live updates daikhny ke liye stream_events ka use kary
-
-```python
-async for event in result.stream_events():
-    print(event)
-```
-
-➡ Is loop se humhy `StreamEvent` milte hain — har event me ek chhoti update hoti hai.
+### ✅ 2. `RunResultStreaming.stream_events()`
+- Is method se aapko milta hai ek **event stream** — yani real-time updates from AI.  
+- Ye return karta hai multiple `StreamEvent` objects.
 
 
-##  Explaination:
+##  What is a StreamEvent?
 
-### 1. `Runner.run_streamed()`
-Agent ko streaming mode me chalatay hai aur humhy `RunResultStreaming` milta hai.
-
-
-### 2. `RunResultStreaming`
-Ek khaas object hai jo streaming ka result rakhta hai.  
-Isay samjho ek **live TV channel** jahan hum naye naye updates dekh sakty hy.
+**StreamEvent** ek real-time update hota hai — ye batata hai:
+- AI kya kar raha hai?
+- Kis stage pe hai?
+- Kya complete hua?
 
 
-### 3. `result.stream_events()`
-Ye ek async generator hai, live updates deta hai step-by-step.
+##  `event.type` — Kya Hai?
 
-```python
-async for event in result.stream_events():
-    print(event)
-```
+> `event.type` batata hai **ye event kis nature ka hai** — yani kis type ka signal aaya hai AI se.
 
-Hum dekh sakty hy:
-- Agent kya soch raha hai
-- Output ka part-by-part likhna
-- Tools ka use
-- Kis agent ne jawab diya
+###  Common Values:
+
+| `event.type`             | Matlab kya hai?                                   |
+|--------------------------|----------------------------------------------------|
+| `"raw_response_event"`   | AI har lafz/token bhej raha hai (typing effect)    |
+| `"stream_event"`         | AI ne koi kaam complete kiya (tool/message)        |
+| `"agent_updated_event"`  | AI ka role/agent change hua                        |
 
 
-### 4. `StreamEvent`
-Ye har chhoti update ko show karta hai — jaise:
+##  `event.item.type` — Kya Hai?
 
-- Ek sentence generate hua
-- Tool use hua
-- Final jawab aaya
-- Ya koi error hua
+> Jab `event.type == "stream_event"` hota hai, tab `event.item` milta hai.  
+> `event.item.type` batata hai **exactly kya kaam complete hua**.
 
-Har event ke andar ye ho sakta hai:
+###  Common Item Types:
 
-```python
-event.output        # Output ka ek tukra
-event.agent_name    # Kis agent ne kaha
-event.type          # Kis type ka event hai (output, thought, etc.)
-```
+| `event.item.type`         | Matlab |
+|---------------------------|--------|
+| `"message_output_item"`   | AI ne message complete kar liya |
+| `"tool_call_output_item"` | Tool run ho gaya, result mil gaya |
+| `"error"`                 | Koi error aayi |
 
 ---
 
-## Example:
+##  Example Code
 
 ```python
-result = await Runner.run_streamed(agent, "What is recursion?")
-
 async for event in result.stream_events():
-    if event.type == "agent_output":
-        print("Agent said:", event.output)
+
+    if event.type == "raw_response_event":
+        print("Typing:", event.data.delta)
+
+    elif event.type == "stream_event":
+        if event.item.type == "message_output_item":
+            print("Message:", event.item.output)
+        elif event.item.type == "tool_call_output_item":
+            print("Tool Output:", event.item.output)
+
+    elif event.type == "agent_updated_event":
+        print("Agent switched!")
 ```
 
 
-## Summary:
+## Kab Kya Use Karna Hai?
 
-| methods                | working                                      |
-|------------------------|---------------------------------------------|
-| `Runner.run_streamed()` | Agent ko live mode me chalata hai           |
-| `RunResultStreaming`    | Streaming ka result rakhta hai              |
-| `stream_events()`       | Har update step-by-step deta hai            |
-| `StreamEvent`           | Har chhoti update (thought, output, etc.)   |
+| Situation                             | Use This |
+|---------------------------------------|----------|
+| Typing effect chahiye (har lafz live) | `event.type == "raw_response_event"` |
+| Message/tool result chahiye           | `event.type == "stream_event"` + `event.item.type` |
+| Agent switch check karna ho           | `event.type == "agent_updated_event"` |
 
 
 
