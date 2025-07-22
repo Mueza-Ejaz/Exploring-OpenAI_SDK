@@ -88,5 +88,45 @@ Yahan orchestrator agent sirf tools ko call kar raha hai — khud translation na
 Jab bhi kisi agent ko tools ke andar use karna ho, hamesha `.as_tool()` use karo.  
 Yeh SDK ko help karta hai agent ko sahi tareeke se samajhne aur use karne mein.
 
+## Custom Output:
+
+custom_output aik optional setting hoti hai jo hum .as_tool() function ke andar use karte hain. Iska kaam yeh hota hai ke jab hum kisi agent ko tool banate hain, to woh normally poora detailed response return karta hai (jaise thoughts, steps, logs waghera).
+
+Lekin agar humein sirf final answer chahiye hota hai – jaise sirf translation ya sirf result – to hum custom_output ke through sirf wahi cheez extract kar lete hain.
+
+## Example:
+custom_output = lambda r: r.output
+
+##  Structure:
+
+```python
+orchestrator_agent = Agent(
+    name="orchestrator_agent",
+    instructions=(
+        "You are a translation agent. You use the tools given to you to translate. "
+        "If asked for multiple translations, you call the relevant tools."
+    ),
+    tools=[
+        english_agent.as_tool(
+            tool_name="translate_to_english",  # 🔹 Required: Unique name for the tool
+            tool_description="Translate to English",  # ℹ️ Optional: Helpful for understanding
+            custom_output=lambda r: r.output  # ✅ Optional: Only return final result, no logs
+        ),
+        urdu_agent.as_tool(
+            tool_name="translate_to_urdu",
+            tool_description="Translate to Urdu",
+            custom_output=lambda r: r.output
+        )
+    ],
+    model=model  # 🔁 The model used to run the agent
+)
+```
+
+
+## Final Point:
+
+custom_output se hum tool ka output clean aur direct bana lete hain, taake jab woh kisi aur agent me use ho to unnecessary data na aaye.
+
+
 
 
